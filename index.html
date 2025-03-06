@@ -19,7 +19,11 @@
         h1 {
             color: #333;
             margin: 5px 0 15px 0;
-            font-size: 24px;
+            font-size: 22px;
+            text-align: center;
+            width: 100%;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
         }
         .main-container {
             width: 98%;
@@ -37,8 +41,8 @@
             display: flex;
             flex-direction: row;
             gap: 12px;
-            flex: 1;
-            min-height: 0;
+            width: 100%;
+            margin-bottom: 20px;
         }
         @media (max-width: 768px) {
             .comparison-container {
@@ -49,12 +53,11 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 0;
             border: 1px solid #ddd;
             border-radius: 6px;
             padding: 12px;
-            margin-right: 6px;
             background-color: #fafafa;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .drop-area {
             border: 2px dashed #ccc;
@@ -491,12 +494,22 @@
                 
                 let output = '';
                 
-                // Just show the differences directly, no need for the extra comparing line
+                // Just display the differences in a clear format
                 for (const [key, diff] of Object.entries(differences)) {
                     output += `${key}:\n`;
                     output += `───────────────────────────\n`;
-                    output += `File 1 (${truncateFilename(currentFile1.name)}): ${diff.file1}\n`;
-                    output += `File 2 (${truncateFilename(currentFile2.name)}): ${diff.file2}\n\n`;
+                    
+                    // Format each line more clearly
+                    const file1Label = `File 1 (${truncateFilename(currentFile1.name)}):`;
+                    const file2Label = `File 2 (${truncateFilename(currentFile2.name)}):`;
+                    
+                    // Add padding to align values
+                    const maxLabelLength = Math.max(file1Label.length, file2Label.length);
+                    const paddedFile1Label = file1Label.padEnd(maxLabelLength, ' ');
+                    const paddedFile2Label = file2Label.padEnd(maxLabelLength, ' ');
+                    
+                    output += `${paddedFile1Label} ${diff.file1}\n`;
+                    output += `${paddedFile2Label} ${diff.file2}\n\n`;
                 }
                 
                 differencesOutput.innerHTML = colorDifferences(output);
