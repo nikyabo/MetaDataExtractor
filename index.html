@@ -1,4 +1,25 @@
-<!DOCTYPE html>
+        .metadata-header {
+            margin: 5px 0 8px 0;
+            font-size: 16px;
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        
+        .comparison-header {
+            margin: 5px 0 15px 0;
+            font-size: 14px;
+            font-weight: normal;
+            background-color: #f5f5f5;
+            padding: 8px 10px;
+            border-radius: 4px;
+            border-left: 3px solid #2196F3;
+            line-height: 1.4;
+        }
+        
+        .differences-output {
+            max-height: 300px;
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -390,11 +411,11 @@
             
             function updateComparisonHeader() {
                 if (currentFile1 && currentFile2) {
-                    fileComparisonHeader.innerHTML = `<strong>Comparing:</strong> "${truncateFilename(currentFile1.name)}" vs "${truncateFilename(currentFile2.name)}"`;
+                    fileComparisonHeader.innerHTML = `<strong>Comparing:</strong> "${currentFile1.name}" vs "${currentFile2.name}"`;
                 } else if (currentFile1) {
-                    fileComparisonHeader.innerHTML = `<strong>File 1:</strong> "${truncateFilename(currentFile1.name)}" - <em>Waiting for File 2</em>`;
+                    fileComparisonHeader.innerHTML = `<strong>File 1:</strong> "${currentFile1.name}" - <em>Waiting for File 2</em>`;
                 } else if (currentFile2) {
-                    fileComparisonHeader.innerHTML = `<em>Waiting for File 1</em> - <strong>File 2:</strong> "${truncateFilename(currentFile2.name)}"`;
+                    fileComparisonHeader.innerHTML = `<em>Waiting for File 1</em> - <strong>File 2:</strong> "${currentFile2.name}"`;
                 } else {
                     fileComparisonHeader.textContent = '';
                 }
@@ -494,22 +515,12 @@
                 
                 let output = '';
                 
-                // Just display the differences in a clear format
+                // Show a more compact differences format
                 for (const [key, diff] of Object.entries(differences)) {
                     output += `${key}:\n`;
                     output += `───────────────────────────\n`;
-                    
-                    // Format each line more clearly
-                    const file1Label = `File 1 (${truncateFilename(currentFile1.name)}):`;
-                    const file2Label = `File 2 (${truncateFilename(currentFile2.name)}):`;
-                    
-                    // Add padding to align values
-                    const maxLabelLength = Math.max(file1Label.length, file2Label.length);
-                    const paddedFile1Label = file1Label.padEnd(maxLabelLength, ' ');
-                    const paddedFile2Label = file2Label.padEnd(maxLabelLength, ' ');
-                    
-                    output += `${paddedFile1Label} ${diff.file1}\n`;
-                    output += `${paddedFile2Label} ${diff.file2}\n\n`;
+                    output += `File 1: ${diff.file1}\n`;
+                    output += `File 2: ${diff.file2}\n\n`;
                 }
                 
                 differencesOutput.innerHTML = colorDifferences(output);
@@ -561,8 +572,8 @@
                 // Add highlighting to differences
                 const lines = text.split('\n');
                 for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].includes('File 1 (') || lines[i].includes('File 2 (')) {
-                        const valueStart = lines[i].lastIndexOf(':') + 2;
+                    if (lines[i].startsWith('File 1:') || lines[i].startsWith('File 2:')) {
+                        const valueStart = lines[i].indexOf(':') + 2;
                         const value = lines[i].substring(valueStart);
                         
                         // Don't highlight if the value is "Not available"
