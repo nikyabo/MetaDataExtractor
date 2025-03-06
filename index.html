@@ -54,19 +54,19 @@
         .drop-area {
             border: 2px dashed #ccc;
             border-radius: 6px;
-            padding: 20px 15px;
+            padding: 10px 10px;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             transition: all 0.3s ease;
             cursor: pointer;
-            min-height: 20px;
+            min-height: 10px;
         }
         .drop-area.highlight {
             border-color: #2196F3;
             background-color: rgba(33, 150, 243, 0.1);
         }
         .drop-area p {
-            font-size: 15px;
+            font-size: 13px;
             color: #555;
             margin: 0;
         }
@@ -184,7 +184,7 @@
                     <h2>File 1</h2>
                 </div>
                 <div id="drop-area-1" class="drop-area">
-                    <p>Drag & drop file here or click to select</p>
+                    <p>Drop file or click to select</p>
                     <input type="file" id="fileInput1" style="display: none;">
                 </div>
                 <div id="file-info-1" class="file-info" style="display: none;">
@@ -203,7 +203,7 @@
                     <h2>File 2</h2>
                 </div>
                 <div id="drop-area-2" class="drop-area">
-                    <p>Drag & drop file here or click to select</p>
+                    <p>Drop file or click to select</p>
                     <input type="file" id="fileInput2" style="display: none;">
                 </div>
                 <div id="file-info-2" class="file-info" style="display: none;">
@@ -223,6 +223,7 @@
                 <h2>Differences</h2>
                 <button id="copy-diff-btn" class="copy-btn">Copy Differences</button>
             </div>
+            <div id="file-comparison-header" style="margin-bottom: 5px; font-size: 13px; font-weight: bold;"></div>
             <div id="differences" class="metadata-output">Select two files to compare their metadata.</div>
             <div id="diff-status" class="status"></div>
         </div>
@@ -254,6 +255,7 @@
             const differencesOutput = document.getElementById('differences');
             const copyDiffBtn = document.getElementById('copy-diff-btn');
             const diffStatus = document.getElementById('diff-status');
+            const fileComparisonHeader = document.getElementById('file-comparison-header');
 
             // Store current files
             let currentFile1 = null;
@@ -343,6 +345,7 @@
                 });
             }
 
+            // Handle file selection for File 1
             async function handleFile1(file) {
                 currentFile1 = file;
                 fileName1.textContent = file.name;
@@ -353,8 +356,10 @@
                 displayMetadata(metadataOutput1, metadata);
                 
                 compareMetadata();
+                updateComparisonHeader();
             }
             
+            // Handle file selection for File 2
             async function handleFile2(file) {
                 currentFile2 = file;
                 fileName2.textContent = file.name;
@@ -365,6 +370,19 @@
                 displayMetadata(metadataOutput2, metadata);
                 
                 compareMetadata();
+                updateComparisonHeader();
+            }
+            
+            function updateComparisonHeader() {
+                if (currentFile1 && currentFile2) {
+                    fileComparisonHeader.textContent = `File 1: "${currentFile1.name}" vs File 2: "${currentFile2.name}"`;
+                } else if (currentFile1) {
+                    fileComparisonHeader.textContent = `File 1: "${currentFile1.name}" - Waiting for File 2`;
+                } else if (currentFile2) {
+                    fileComparisonHeader.textContent = `Waiting for File 1 - File 2: "${currentFile2.name}"`;
+                } else {
+                    fileComparisonHeader.textContent = '';
+                }
             }
             
             function clearFile(fileNum) {
@@ -379,6 +397,7 @@
                     metadataOutput2.textContent = 'No file selected yet.';
                     fileInfo2.style.display = 'none';
                 }
+                updateComparisonHeader();
             }
 
             async function extractMetadata(file) {
@@ -459,12 +478,14 @@
                 }
                 
                 let output = '';
+                output += `Comparing: "${currentFile1.name}" vs "${currentFile2.name}"\n`;
+                output += `───────────────────────────\n\n`;
                 
                 for (const [key, diff] of Object.entries(differences)) {
                     output += `${key}:\n`;
                     output += `───────────────────────────\n`;
-                    output += `File 1: ${diff.file1}\n`;
-                    output += `File 2: ${diff.file2}\n\n`;
+                    output += `File 1 (${currentFile1.name}): ${diff.file1}\n`;
+                    output += `File 2 (${currentFile2.name}): ${diff.file2}\n\n`;
                 }
                 
                 differencesOutput.innerHTML = colorDifferences(output);
@@ -511,9 +532,10 @@
                 // Add highlighting to differences
                 const lines = text.split('\n');
                 for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].startsWith('File 1:') || lines[i].startsWith('File 2:')) {
-                        const value = lines[i].substring(lines[i].indexOf(':') + 2);
-                        lines[i] = lines[i].replace(value, `<span class="diff-highlight">${value}</span>`);
+                    if (lines[i].includes('File 1 (') || lines[i].includes('File 2 (')) {
+                        const valueStart = lines[i].lastIndexOf(':') + 2;
+                        const value = lines[i].substring(valueStart);
+                        lines[i] = lines[i].substring(0, valueStart) + `<span class="diff-highlight">${value}</span>`;
                     }
                 }
                 return lines.join('\n');
