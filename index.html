@@ -516,6 +516,11 @@
                 
                 let output = '';
                 
+                // Add file names at the top of comparison
+                output += `File 1: ${currentFile1.name}\n`;
+                output += `File 2: ${currentFile2.name}\n`;
+                output += `───────────────────────────\n\n`;
+                
                 // Show a more compact differences format
                 for (const [key, diff] of Object.entries(differences)) {
                     output += `${key}:\n`;
