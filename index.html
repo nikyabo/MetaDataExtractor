@@ -50,6 +50,11 @@
             display: flex;
             flex-direction: column;
             min-height: 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            margin-right: 6px;
+            background-color: #fafafa;
         }
         .drop-area {
             border: 2px dashed #ccc;
@@ -71,8 +76,8 @@
             margin: 0;
         }
         .metadata-output {
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 15px;
@@ -83,7 +88,7 @@
             white-space: pre-wrap;
             font-family: monospace;
             font-size: 13px;
-            line-height: 1.4;
+            line-height: 1.6;
         }
         .copy-btn {
             background-color: #4CAF50;
@@ -140,11 +145,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+            width: 100%;
         }
         .file-header h2 {
             margin: 0;
             font-size: 18px;
+            color: #333;
         }
         .differences-section {
             margin-top: 10px;
@@ -156,11 +165,13 @@
             flex-direction: column;
         }
         .diff-highlight {
-            background-color: #ffdddd;
-            color: #ff0000;
+            background-color: #ffeeee;
+            color: #d32f2f;
             font-weight: bold;
             padding: 1px 3px;
             border-radius: 2px;
+            display: inline-block;
+            margin: 2px 0;
         }
         .diff-header {
             display: flex;
@@ -181,7 +192,7 @@
         <div class="comparison-container">
             <!-- File 1 Section -->
             <div class="file-container">
-                <div class="file-header">
+                <div id="file-header-1" class="file-header">
                     <h2>File 1</h2>
                 </div>
                 <div id="drop-area-1" class="drop-area">
@@ -200,7 +211,7 @@
 
             <!-- File 2 Section -->
             <div class="file-container">
-                <div class="file-header">
+                <div id="file-header-2" class="file-header">
                     <h2>File 2</h2>
                 </div>
                 <div id="drop-area-2" class="drop-area">
@@ -376,11 +387,11 @@
             
             function updateComparisonHeader() {
                 if (currentFile1 && currentFile2) {
-                    fileComparisonHeader.textContent = `File 1: "${currentFile1.name}" vs File 2: "${currentFile2.name}"`;
+                    fileComparisonHeader.innerHTML = `<strong>Comparing:</strong> "${truncateFilename(currentFile1.name)}" vs "${truncateFilename(currentFile2.name)}"`;
                 } else if (currentFile1) {
-                    fileComparisonHeader.textContent = `File 1: "${currentFile1.name}" - Waiting for File 2`;
+                    fileComparisonHeader.innerHTML = `<strong>File 1:</strong> "${truncateFilename(currentFile1.name)}" - <em>Waiting for File 2</em>`;
                 } else if (currentFile2) {
-                    fileComparisonHeader.textContent = `Waiting for File 1 - File 2: "${currentFile2.name}"`;
+                    fileComparisonHeader.innerHTML = `<em>Waiting for File 1</em> - <strong>File 2:</strong> "${truncateFilename(currentFile2.name)}"`;
                 } else {
                     fileComparisonHeader.textContent = '';
                 }
@@ -479,17 +490,21 @@
                 }
                 
                 let output = '';
-                output += `Comparing: "${currentFile1.name}" vs "${currentFile2.name}"\n`;
-                output += `───────────────────────────\n\n`;
                 
+                // Just show the differences directly, no need for the extra comparing line
                 for (const [key, diff] of Object.entries(differences)) {
                     output += `${key}:\n`;
                     output += `───────────────────────────\n`;
-                    output += `File 1 (${currentFile1.name}): ${diff.file1}\n`;
-                    output += `File 2 (${currentFile2.name}): ${diff.file2}\n\n`;
+                    output += `File 1 (${truncateFilename(currentFile1.name)}): ${diff.file1}\n`;
+                    output += `File 2 (${truncateFilename(currentFile2.name)}): ${diff.file2}\n\n`;
                 }
                 
                 differencesOutput.innerHTML = colorDifferences(output);
+            }
+            
+            function truncateFilename(filename) {
+                // Truncate long filenames for display in differences section
+                return filename.length > 15 ? filename.substring(0, 12) + '...' : filename;
             }
             
             function findDifferences(metadata1, metadata2) {
@@ -536,7 +551,13 @@
                     if (lines[i].includes('File 1 (') || lines[i].includes('File 2 (')) {
                         const valueStart = lines[i].lastIndexOf(':') + 2;
                         const value = lines[i].substring(valueStart);
-                        lines[i] = lines[i].substring(0, valueStart) + `<span class="diff-highlight">${value}</span>`;
+                        
+                        // Don't highlight if the value is "Not available"
+                        if (value.trim() !== 'Not available') {
+                            lines[i] = lines[i].substring(0, valueStart) + `<span class="diff-highlight">${value}</span>`;
+                        } else {
+                            lines[i] = lines[i].substring(0, valueStart) + `<span style="color: #777;">${value}</span>`;
+                        }
                     }
                 }
                 return lines.join('\n');
