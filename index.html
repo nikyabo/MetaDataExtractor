@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Metadata Extractor</title>
+    <title>File Metadata Comparison Tool</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,13 +14,32 @@
             flex-direction: column;
             align-items: center;
         }
-        .container {
-            width: 90%;
-            max-width: 700px;
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .main-container {
+            width: 95%;
+            max-width: 1200px;
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
+        }
+        .comparison-container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .comparison-container {
+                flex-direction: column;
+            }
+        }
+        .file-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         .drop-area {
             border: 3px dashed #ccc;
@@ -30,6 +49,7 @@
             margin-bottom: 20px;
             transition: all 0.3s ease;
             cursor: pointer;
+            min-height: 100px;
         }
         .drop-area.highlight {
             border-color: #2196F3;
@@ -61,28 +81,11 @@
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s;
+            margin-bottom: 20px;
+            align-self: flex-start;
         }
         .copy-btn:hover {
             background-color: #45a049;
-        }
-        .file-list {
-            width: 100%;
-            margin-bottom: 15px;
-        }
-        .file-item {
-            background-color: #e9e9e9;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .file-item span {
-            margin-right: 10px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
         .clear-btn {
             background-color: #f44336;
@@ -92,192 +95,404 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+            margin-left: 10px;
         }
         .clear-btn:hover {
             background-color: #d32f2f;
+        }
+        .file-info {
+            background-color: #e9e9e9;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-info span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .status {
             margin-top: 10px;
             color: #4CAF50;
             font-weight: bold;
             height: 20px;
+            align-self: center;
+        }
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .file-header h2 {
+            margin: 0;
+        }
+        .differences-section {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+        .diff-highlight {
+            background-color: #ffdddd;
+            color: #ff0000;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .diff-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>File Metadata Extractor</h1>
-        <div id="drop-area" class="drop-area">
-            <p>Drag & drop files here or click to select files</p>
-            <input type="file" id="fileInput" multiple style="display: none;">
+    <div class="main-container">
+        <h1>File Metadata Comparison Tool</h1>
+        
+        <div class="comparison-container">
+            <!-- File 1 Section -->
+            <div class="file-container">
+                <div class="file-header">
+                    <h2>File 1</h2>
+                </div>
+                <div id="drop-area-1" class="drop-area">
+                    <p>Drag & drop file here or click to select</p>
+                    <input type="file" id="fileInput1" style="display: none;">
+                </div>
+                <div id="file-info-1" class="file-info" style="display: none;">
+                    <span id="file-name-1"></span>
+                    <button id="clear-btn-1" class="clear-btn">Clear</button>
+                </div>
+                <h3>Metadata</h3>
+                <div id="metadata-1" class="metadata-output">No file selected yet.</div>
+                <button id="copy-btn-1" class="copy-btn">Copy Metadata</button>
+                <div id="status-1" class="status"></div>
+            </div>
+
+            <!-- File 2 Section -->
+            <div class="file-container">
+                <div class="file-header">
+                    <h2>File 2</h2>
+                </div>
+                <div id="drop-area-2" class="drop-area">
+                    <p>Drag & drop file here or click to select</p>
+                    <input type="file" id="fileInput2" style="display: none;">
+                </div>
+                <div id="file-info-2" class="file-info" style="display: none;">
+                    <span id="file-name-2"></span>
+                    <button id="clear-btn-2" class="clear-btn">Clear</button>
+                </div>
+                <h3>Metadata</h3>
+                <div id="metadata-2" class="metadata-output">No file selected yet.</div>
+                <button id="copy-btn-2" class="copy-btn">Copy Metadata</button>
+                <div id="status-2" class="status"></div>
+            </div>
         </div>
-        <div id="file-list" class="file-list"></div>
-        <h2>Metadata</h2>
-        <div id="metadata" class="metadata-output">No files selected yet.</div>
-        <button id="copyBtn" class="copy-btn">Copy Metadata</button>
-        <div id="status" class="status"></div>
+        
+        <!-- Differences Section -->
+        <div class="differences-section">
+            <div class="diff-header">
+                <h2>Differences</h2>
+                <button id="copy-diff-btn" class="copy-btn">Copy Differences</button>
+            </div>
+            <div id="differences" class="metadata-output">Select two files to compare their metadata.</div>
+            <div id="diff-status" class="status"></div>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const dropArea = document.getElementById('drop-area');
-            const fileInput = document.getElementById('fileInput');
-            const metadataOutput = document.getElementById('metadata');
-            const copyBtn = document.getElementById('copyBtn');
-            const fileList = document.getElementById('file-list');
-            const statusElement = document.getElementById('status');
-
-            let currentFiles = [];
-
-            // Prevent default drag behaviors
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, preventDefaults, false);
-                document.body.addEventListener(eventName, preventDefaults, false);
-            });
-
-            // Highlight drop area when dragging over it
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, highlight, false);
-            });
-
-            // Remove highlight when dragging leaves drop area
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, unhighlight, false);
-            });
-
-            // Handle dropped files
-            dropArea.addEventListener('drop', handleDrop, false);
+            // Elements for File 1
+            const dropArea1 = document.getElementById('drop-area-1');
+            const fileInput1 = document.getElementById('fileInput1');
+            const metadataOutput1 = document.getElementById('metadata-1');
+            const copyBtn1 = document.getElementById('copy-btn-1');
+            const fileInfo1 = document.getElementById('file-info-1');
+            const fileName1 = document.getElementById('file-name-1');
+            const clearBtn1 = document.getElementById('clear-btn-1');
+            const status1 = document.getElementById('status-1');
             
-            // Handle click to select files
-            dropArea.addEventListener('click', () => {
-                fileInput.click();
-            });
+            // Elements for File 2
+            const dropArea2 = document.getElementById('drop-area-2');
+            const fileInput2 = document.getElementById('fileInput2');
+            const metadataOutput2 = document.getElementById('metadata-2');
+            const copyBtn2 = document.getElementById('copy-btn-2');
+            const fileInfo2 = document.getElementById('file-info-2');
+            const fileName2 = document.getElementById('file-name-2');
+            const clearBtn2 = document.getElementById('clear-btn-2');
+            const status2 = document.getElementById('status-2');
+            
+            // Elements for Differences
+            const differencesOutput = document.getElementById('differences');
+            const copyDiffBtn = document.getElementById('copy-diff-btn');
+            const diffStatus = document.getElementById('diff-status');
 
-            fileInput.addEventListener('change', () => {
-                handleFiles(fileInput.files);
+            // Store current files
+            let currentFile1 = null;
+            let currentFile2 = null;
+            let metadataCache1 = {};
+            let metadataCache2 = {};
+            
+            // Setup event listeners for both drop areas
+            setupDropArea(dropArea1, fileInput1, handleFile1);
+            setupDropArea(dropArea2, fileInput2, handleFile2);
+            
+            // Set up copy buttons
+            setupCopyButton(copyBtn1, metadataOutput1, status1);
+            setupCopyButton(copyBtn2, metadataOutput2, status2);
+            setupCopyButton(copyDiffBtn, differencesOutput, diffStatus);
+            
+            // Set up clear buttons
+            clearBtn1.addEventListener('click', () => {
+                clearFile(1);
+                compareMetadata();
             });
-
-            // Copy metadata to clipboard
-            copyBtn.addEventListener('click', () => {
-                if (metadataOutput.textContent === 'No files selected yet.') {
-                    showStatus('No metadata to copy!', '#f44336');
-                    return;
+            
+            clearBtn2.addEventListener('click', () => {
+                clearFile(2);
+                compareMetadata();
+            });
+            
+            // Set up file inputs
+            fileInput1.addEventListener('change', () => {
+                if (fileInput1.files.length > 0) {
+                    handleFile1(fileInput1.files[0]);
                 }
-                
-                navigator.clipboard.writeText(metadataOutput.textContent)
-                    .then(() => {
-                        showStatus('Metadata copied to clipboard!', '#4CAF50');
-                    })
-                    .catch(err => {
-                        showStatus('Failed to copy metadata!', '#f44336');
-                        console.error('Could not copy text: ', err);
-                    });
+            });
+            
+            fileInput2.addEventListener('change', () => {
+                if (fileInput2.files.length > 0) {
+                    handleFile2(fileInput2.files[0]);
+                }
             });
 
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            function highlight() {
-                dropArea.classList.add('highlight');
-            }
-
-            function unhighlight() {
-                dropArea.classList.remove('highlight');
-            }
-
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                handleFiles(files);
-            }
-
-            function handleFiles(fileList) {
-                currentFiles = Array.from(fileList);
-                updateFileList();
-                extractMetadata(currentFiles);
-            }
-
-            function updateFileList() {
-                fileList.innerHTML = '';
+            function setupDropArea(dropArea, fileInput, fileHandler) {
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dropArea.addEventListener(eventName, preventDefaults, false);
+                    document.body.addEventListener(eventName, preventDefaults, false);
+                });
                 
-                currentFiles.forEach((file, index) => {
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'file-item';
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropArea.addEventListener(eventName, () => {
+                        dropArea.classList.add('highlight');
+                    }, false);
+                });
+                
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropArea.addEventListener(eventName, () => {
+                        dropArea.classList.remove('highlight');
+                    }, false);
+                });
+                
+                dropArea.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    if (dt.files.length > 0) {
+                        fileHandler(dt.files[0]);
+                    }
+                }, false);
+                
+                dropArea.addEventListener('click', () => {
+                    fileInput.click();
+                });
+            }
+            
+            function setupCopyButton(button, sourceElement, statusElement) {
+                button.addEventListener('click', () => {
+                    if (sourceElement.textContent.includes('No file selected yet') || 
+                        sourceElement.textContent.includes('Select two files to compare')) {
+                        showStatus(statusElement, 'No data to copy!', '#f44336');
+                        return;
+                    }
                     
-                    const fileInfo = document.createElement('span');
-                    fileInfo.textContent = file.name;
-                    fileItem.appendChild(fileInfo);
-                    
-                    const removeBtn = document.createElement('button');
-                    removeBtn.className = 'clear-btn';
-                    removeBtn.textContent = 'Remove';
-                    removeBtn.addEventListener('click', () => {
-                        currentFiles.splice(index, 1);
-                        updateFileList();
-                        extractMetadata(currentFiles);
-                    });
-                    fileItem.appendChild(removeBtn);
-                    
-                    fileList.appendChild(fileItem);
+                    navigator.clipboard.writeText(sourceElement.textContent)
+                        .then(() => {
+                            showStatus(statusElement, 'Copied to clipboard!', '#4CAF50');
+                        })
+                        .catch(err => {
+                            showStatus(statusElement, 'Failed to copy!', '#f44336');
+                            console.error('Could not copy text: ', err);
+                        });
                 });
             }
 
-            async function extractMetadata(files) {
-                if (files.length === 0) {
-                    metadataOutput.textContent = 'No files selected yet.';
+            async function handleFile1(file) {
+                currentFile1 = file;
+                fileName1.textContent = file.name;
+                fileInfo1.style.display = 'flex';
+                
+                const metadata = await extractMetadata(file);
+                metadataCache1 = metadata;
+                displayMetadata(metadataOutput1, metadata);
+                
+                compareMetadata();
+            }
+            
+            async function handleFile2(file) {
+                currentFile2 = file;
+                fileName2.textContent = file.name;
+                fileInfo2.style.display = 'flex';
+                
+                const metadata = await extractMetadata(file);
+                metadataCache2 = metadata;
+                displayMetadata(metadataOutput2, metadata);
+                
+                compareMetadata();
+            }
+            
+            function clearFile(fileNum) {
+                if (fileNum === 1) {
+                    currentFile1 = null;
+                    metadataCache1 = {};
+                    metadataOutput1.textContent = 'No file selected yet.';
+                    fileInfo1.style.display = 'none';
+                } else {
+                    currentFile2 = null;
+                    metadataCache2 = {};
+                    metadataOutput2.textContent = 'No file selected yet.';
+                    fileInfo2.style.display = 'none';
+                }
+            }
+
+            async function extractMetadata(file) {
+                const metadata = {
+                    name: file.name,
+                    type: file.type || 'Unknown',
+                    size: formatSize(file.size),
+                    lastModified: new Date(file.lastModified).toLocaleString()
+                };
+                
+                // Extract image dimensions for image files
+                if (file.type.startsWith('image/')) {
+                    try {
+                        const dimensions = await getImageDimensions(file);
+                        metadata.dimensions = `${dimensions.width} × ${dimensions.height} pixels`;
+                    } catch (error) {
+                        metadata.dimensions = 'Could not retrieve';
+                    }
+                }
+                
+                // Extract video dimensions and duration for video files
+                if (file.type.startsWith('video/')) {
+                    try {
+                        const videoData = await getVideoDimensions(file);
+                        metadata.dimensions = `${videoData.width} × ${videoData.height} pixels`;
+                        metadata.duration = formatDuration(videoData.duration);
+                    } catch (error) {
+                        metadata.dimensions = 'Could not retrieve';
+                        metadata.duration = 'Could not retrieve';
+                    }
+                }
+                
+                // Extract audio duration for audio files
+                if (file.type.startsWith('audio/')) {
+                    try {
+                        const duration = await getAudioDuration(file);
+                        metadata.duration = formatDuration(duration);
+                    } catch (error) {
+                        metadata.duration = 'Could not retrieve';
+                    }
+                }
+                
+                return metadata;
+            }
+            
+            function displayMetadata(outputElement, metadata) {
+                let output = '';
+                
+                // Create a nicely formatted output
+                output += `Name: ${metadata.name}\n`;
+                output += `───────────────────────────\n`;
+                output += `Type: ${metadata.type}\n`;
+                output += `Size: ${metadata.size}\n`;
+                output += `Last Modified: ${metadata.lastModified}\n`;
+                
+                if (metadata.dimensions) {
+                    output += `Dimensions: ${metadata.dimensions}\n`;
+                }
+                
+                if (metadata.duration) {
+                    output += `Duration: ${metadata.duration}\n`;
+                }
+                
+                outputElement.textContent = output;
+            }
+            
+            function compareMetadata() {
+                if (!currentFile1 || !currentFile2) {
+                    differencesOutput.textContent = 'Select two files to compare their metadata.';
                     return;
                 }
-
+                
+                const differences = findDifferences(metadataCache1, metadataCache2);
+                
+                if (Object.keys(differences).length === 0) {
+                    differencesOutput.textContent = 'No differences found between the files.';
+                    return;
+                }
+                
                 let output = '';
-
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    output += `File ${i+1}: ${file.name}\n`;
+                
+                for (const [key, diff] of Object.entries(differences)) {
+                    output += `${key}:\n`;
                     output += `───────────────────────────\n`;
-                    output += `Type: ${file.type || 'Unknown'}\n`;
-                    output += `Size: ${formatSize(file.size)}\n`;
-                    output += `Last Modified: ${new Date(file.lastModified).toLocaleString()}\n`;
+                    output += `File 1: ${diff.file1}\n`;
+                    output += `File 2: ${diff.file2}\n\n`;
+                }
+                
+                differencesOutput.innerHTML = colorDifferences(output);
+            }
+            
+            function findDifferences(metadata1, metadata2) {
+                const differences = {};
+                const allKeys = new Set([...Object.keys(metadata1), ...Object.keys(metadata2)]);
+                
+                for (const key of allKeys) {
+                    // Skip the name property
+                    if (key === 'name') continue;
                     
-                    // Extract image dimensions for image files
-                    if (file.type.startsWith('image/')) {
-                        try {
-                            const dimensions = await getImageDimensions(file);
-                            output += `Dimensions: ${dimensions.width} × ${dimensions.height} pixels\n`;
-                        } catch (error) {
-                            output += `Dimensions: Could not retrieve\n`;
-                        }
+                    // Handle missing properties
+                    if (!(key in metadata1)) {
+                        differences[key] = {
+                            file1: 'Not available',
+                            file2: metadata2[key]
+                        };
+                        continue;
                     }
                     
-                    // Extract video dimensions for video files
-                    if (file.type.startsWith('video/')) {
-                        try {
-                            const dimensions = await getVideoDimensions(file);
-                            output += `Dimensions: ${dimensions.width} × ${dimensions.height} pixels\n`;
-                            output += `Duration: ${formatDuration(dimensions.duration)}\n`;
-                        } catch (error) {
-                            output += `Dimensions: Could not retrieve\n`;
-                        }
+                    if (!(key in metadata2)) {
+                        differences[key] = {
+                            file1: metadata1[key],
+                            file2: 'Not available'
+                        };
+                        continue;
                     }
                     
-                    // Extract audio duration for audio files
-                    if (file.type.startsWith('audio/')) {
-                        try {
-                            const duration = await getAudioDuration(file);
-                            output += `Duration: ${formatDuration(duration)}\n`;
-                        } catch (error) {
-                            output += `Duration: Could not retrieve\n`;
-                        }
-                    }
-                    
-                    // Add extra space between files
-                    if (i < files.length - 1) {
-                        output += `\n\n`;
+                    // Check for differences in existing properties
+                    if (metadata1[key] !== metadata2[key]) {
+                        differences[key] = {
+                            file1: metadata1[key],
+                            file2: metadata2[key]
+                        };
                     }
                 }
-
-                metadataOutput.textContent = output;
+                
+                return differences;
+            }
+            
+            function colorDifferences(text) {
+                // Add highlighting to differences
+                const lines = text.split('\n');
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].startsWith('File 1:') || lines[i].startsWith('File 2:')) {
+                        const value = lines[i].substring(lines[i].indexOf(':') + 2);
+                        lines[i] = lines[i].replace(value, `<span class="diff-highlight">${value}</span>`);
+                    }
+                }
+                return lines.join('\n');
             }
 
             function getImageDimensions(file) {
@@ -297,7 +512,7 @@
                     img.src = URL.createObjectURL(file);
                 });
             }
-
+            
             function getVideoDimensions(file) {
                 return new Promise((resolve, reject) => {
                     const video = document.createElement('video');
@@ -320,7 +535,7 @@
                     video.src = URL.createObjectURL(file);
                 });
             }
-
+            
             function getAudioDuration(file) {
                 return new Promise((resolve, reject) => {
                     const audio = new Audio();
@@ -338,7 +553,7 @@
                     audio.src = URL.createObjectURL(file);
                 });
             }
-
+            
             function formatSize(bytes) {
                 if (bytes === 0) return '0 Bytes';
                 
@@ -348,7 +563,7 @@
                 
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
             }
-
+            
             function formatDuration(seconds) {
                 const h = Math.floor(seconds / 3600);
                 const m = Math.floor((seconds % 3600) / 60);
@@ -362,13 +577,18 @@
                 
                 return result;
             }
-
-            function showStatus(message, color) {
-                statusElement.textContent = message;
-                statusElement.style.color = color;
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            function showStatus(element, message, color) {
+                element.textContent = message;
+                element.style.color = color;
                 
                 setTimeout(() => {
-                    statusElement.textContent = '';
+                    element.textContent = '';
                 }, 3000);
             }
         });
